@@ -19,6 +19,7 @@ class _BoxerpageState extends State<Boxerpage> {
   late SharedPreferences logindata;
   bool _isCheckingStatus = false;
   
+  
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   String _bmiResult = "";
