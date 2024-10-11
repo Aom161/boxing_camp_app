@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "973582339517",
+    "project_id": "mobile-boxing",
+    "storage_bucket": "mobile-boxing.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:973582339517:android:741048f65d4ed3fdd196d4",
+        "android_client_info": {
+          "package_name": "com.example.boxing_camp_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbl2LjvcvRZzKudhccGFXKlLYTqYv1IHM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
