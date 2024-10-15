@@ -19,10 +19,12 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
   String accessToken = "";
   String refreshToken = "";
   String role = "";
+  String? _id;
   late SharedPreferences logindata;
   bool _isCheckingStatus = false;
   String? selectedBoxer;
   List<Map<String, dynamic>> boxers = [];
+  List<Map<String, dynamic>> trainers = [];
 
   DateTime selectedDate = DateTime.now();
 
@@ -31,7 +33,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     super.initState();
     username = widget.username;
     getInitialize();
-    _fetchBoxers();
+    _fetchBoxersAndTrainers();
   }
 
   void getInitialize() async {
@@ -42,6 +44,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
       accessToken = prefs.getString("accessToken")!;
       refreshToken = prefs.getString("refreshToken")!;
       role = prefs.getString("role")!;
+      _id = prefs.getString('_id');
     });
 
     String? lastActivityDate = prefs.getString("lastActivityDate");
@@ -61,24 +64,47 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
     print(role);
   }
 
-  Future<void> _fetchBoxers() async {
-    final url = Uri.parse('$apiUrl/users');
+  Future<void> _fetchBoxersAndTrainers() async {
+    final urlBoxers = Uri.parse('$apiUrl/getallrequest');
+    final urlTrainers = Uri.parse('$apiUrl/getalltrainerrequest');
+
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> boxerList = jsonDecode(response.body);
+      // ดึงข้อมูลจากทั้งสอง API
+      final responseBoxers = await http.get(urlBoxers);
+      final responseTrainers = await http.get(urlTrainers);
+
+      if (responseBoxers.statusCode == 200 &&
+          responseTrainers.statusCode == 200) {
+        final List<dynamic> boxerList = jsonDecode(responseBoxers.body);
+        final List<dynamic> trainerList = jsonDecode(responseTrainers.body);
+
         setState(() {
-          // Include both fullname and _id
+          // กรอง trainer ที่มี ID ตรงกับผู้ใช้ที่ล็อกอินอยู่
+          final List<dynamic> filteredTrainers = trainerList
+              .where((trainer) => trainer['trainerId']['_id'] == _id)
+              .toList();
+
+          // สร้าง Set ของ campId จาก filteredTrainers เพื่อทำให้การค้นหาง่ายขึ้น
+          final Set<String> trainerCampIds = filteredTrainers
+              .map((trainer) => trainer['campId']['_id'] as String)
+              .toSet();
+
+          // กรองเฉพาะนักมวยที่มี campId ตรงกับใน trainerCampIds
           boxers = boxerList
-              .where((boxer) => boxer['role'] == 'นักมวย')
-              .map((boxer) => {'id': boxer['_id'], 'name': boxer['fullname']})
+              .where((boxer) => trainerCampIds.contains(boxer['campId']['_id']))
+              .map((boxer) => {
+                    'boxerId': boxer['boxerId']['_id'],
+                    'boxerName': boxer['boxerId']['fullname'],
+                    'campId': boxer['campId']['_id'],
+                  })
               .toList();
         });
       } else {
-        print('Failed to fetch boxers. Status code: ${response.statusCode}');
+        print(
+            'Failed to fetch data. Boxers Status code: ${responseBoxers.statusCode}, Trainers Status code: ${responseTrainers.statusCode}');
       }
     } catch (error) {
-      print('Error fetching boxers: $error');
+      print('Error fetching data: $error');
     }
   }
 
@@ -304,7 +330,7 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
               elevation: 4,
               child: ListTile(
                 title: Text(
-                  'วันที่บันทึก: ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
+                  'วันที่บันทึก: ${DateFormat('dd / MM /').format(selectedDate)} ${selectedDate.year + 543}',
                   style: const TextStyle(fontSize: 18),
                 ),
                 trailing: const Icon(Icons.lock),
@@ -312,21 +338,20 @@ class _ActivityFormPageState extends State<ActivityFormPage> {
             ),
             const SizedBox(height: 16),
             DropdownButton<String>(
-              hint: const Text("เลือกนักมวย"),
-              value:
-                  selectedBoxer, // This will store the ObjectId (not the name)
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedBoxer =
-                      newValue; // Store the ObjectId of the selected boxer
-                });
-              },
-              items: boxers.map<DropdownMenuItem<String>>((boxer) {
+              value: selectedBoxer,
+              hint: Text('เลือกนักมวย'),
+              isExpanded: true,
+              items: boxers.map((boxer) {
                 return DropdownMenuItem<String>(
-                  value: boxer['id'], // Store the ObjectId here
-                  child: Text(boxer['name']), // Display the boxer's name
+                  value: boxer['boxerId'],
+                  child: Text('${boxer['boxerName']}'),
                 );
               }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedBoxer = value;
+                });
+              },
             ),
             const SizedBox(height: 16),
             _buildActivityForm(

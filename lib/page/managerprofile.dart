@@ -247,33 +247,39 @@ class _ManagerProfilePageState extends State<ManagerProfilePage> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                  Positioned(
-                    bottom: 0,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Positioned(
-                          bottom: 0,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.add_a_photo),
-                                onPressed: _pickImage,
-                                tooltip: 'เลือกรูป',
-                              ),
-                              const SizedBox(width: 10),
-                              IconButton(
-                                icon: const Icon(Icons.upload_file),
-                                onPressed: _uploadImage,
-                                tooltip: 'อัปโหลดรูป',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  
+                  
+                  // ปุ่มเลือกรูปและอัปโหลดรูป
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 170), // ระยะห่างจากรูป
+                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FloatingActionButton(
+                        onPressed: _pickImage,
+                        tooltip: 'เลือกรูป',
+                        child: const Icon(Icons.add_a_photo),
+                        backgroundColor: const Color.fromARGB(255, 82, 168, 238),
+                        shape: const CircleBorder(),
+                      ),
+                      const SizedBox(width: 20), // ระยะห่างระหว่างปุ่ม
+                      FloatingActionButton(
+                        onPressed: _uploadImage,
+                        tooltip: 'อัปโหลดรูป',
+                        child: const Icon(Icons.upload_file),
+                        backgroundColor: const Color.fromARGB(255, 100, 228, 104),
+                        shape: const CircleBorder(),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 30), // เพิ่มระยะห่างระหว่างปุ่มและรูปโปรไฟล์
+                  ],
+                ),
+                
+
+
                 ],
               ),
               const SizedBox(height: 20),

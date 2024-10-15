@@ -1,16 +1,21 @@
+import 'dart:convert';
 import 'package:boxing_camp_app/main.dart';
+import 'package:boxing_camp_app/models/user.dart';
+import 'package:boxing_camp_app/variable.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ManagerHomePage extends StatefulWidget {
+class BoxerAll extends StatefulWidget {
   final String? username;
-  const ManagerHomePage({super.key, this.username});
+  const BoxerAll({super.key, this.username});
 
   @override
-  State<ManagerHomePage> createState() => _ManagerHomePageState();
+  _BoxerAllState createState() => _BoxerAllState();
 }
 
-class _ManagerHomePageState extends State<ManagerHomePage> {
+class _BoxerAllState extends State<BoxerAll> {
+  late Future<List<User>> futureUsers;
   late String? username;
   String accessToken = "";
   String refreshToken = "";
@@ -21,6 +26,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
   @override
   void initState() {
     super.initState();
+    futureUsers = fetchUsers();
     username = widget.username;
     getInitialize();
   }
@@ -42,12 +48,33 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
     print(role);
   }
 
+  Future<List<User>> fetchUsers() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/users'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> usersJson = json.decode(response.body);
+      final List<User> users = usersJson
+          .map((json) => User.fromJson(json))
+          .where((user) => user.role == 'นักมวย')
+          .toList();
+      return users;
+    } else {
+      throw Exception('Failed to load users');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "ผู้จัดการค่ายมวย",
+          'รายชื่อนักมวย',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -62,7 +89,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  'ยินดีต้อนรับคุณ $username',
+                  '$username',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -78,7 +105,7 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
         isLoggedIn: _isCheckingStatus,
         role: role,
         onHomeTap: (context) {
-          Navigator.pushNamed(context, '/onepage');
+          Navigator.pushNamed(context, '/home');
         },
         onCampTap: (context) {
           Navigator.pushNamed(context, '/dashboard');
@@ -88,10 +115,29 @@ class _ManagerHomePageState extends State<ManagerHomePage> {
         },
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [],
+        child: FutureBuilder<List<User>>(
+          future: futureUsers,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Text('ไม่พบข้อมูล');
+            } else {
+              final users = snapshot.data!;
+              return ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(users[index].fullname),
+                    subtitle: Text(users[index].email),
+                    // Removed edit and delete buttons
+                  );
+                },
+              );
+            }
+          },
         ),
       ),
     );

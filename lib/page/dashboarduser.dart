@@ -4,6 +4,7 @@ import 'package:boxing_camp_app/variable.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class DashboardUser extends StatefulWidget {
@@ -14,7 +15,13 @@ class DashboardUser extends StatefulWidget {
 }
 
 class _DashboardUserState extends State<DashboardUser> {
-
+  late String? username;
+  late String? _id;
+  String accessToken = "";
+  String refreshToken = "";
+  String role = "";
+  late SharedPreferences logindata;
+  bool _isCheckingStatus = false;
   List<TrainingData> runningData = [];
   List<TrainingData> ropeJumpingData = [];
   List<TrainingData> punchingData = [];
@@ -23,13 +30,32 @@ class _DashboardUserState extends State<DashboardUser> {
   @override
   void initState() {
     super.initState();
+    getInitialize();
     _fetchTrainingData();
+  }
+
+  void getInitialize() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      _isCheckingStatus = prefs.getBool("isLoggedIn") ?? false;
+      username = prefs.getString("username") ?? "ไม่ได้ลงชื่อเข้าใช้";
+      accessToken = prefs.getString("accessToken") ?? "";
+      refreshToken = prefs.getString("refreshToken") ?? "";
+      role = prefs.getString("role") ?? "No Role";
+      _id = prefs.getString('_id');
+    });
+
+    print(_isCheckingStatus);
+    print(username);
+    print(accessToken);
+    print(refreshToken);
+    print(role);
   }
 
   Future<void> _fetchTrainingData() async {
     try {
-      final response =
-          await http.get(Uri.parse('$apiUrl/gettrainingall'));
+      final response = await http.get(Uri.parse('$apiUrl/gettrainingall'));
 
       if (response.statusCode == 200) {
         final List<dynamic> trainings = jsonDecode(response.body);
@@ -151,6 +177,9 @@ class _DashboardUserState extends State<DashboardUser> {
         backgroundColor: const Color.fromARGB(248, 226, 131, 53),
       ),
       drawer: BaseAppDrawer(
+        username: username,
+        isLoggedIn: _isCheckingStatus,
+        role: role,
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -164,12 +193,12 @@ class _DashboardUserState extends State<DashboardUser> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            buildTrainingChart('Running Duration (Minutes)', runningData),
+            buildTrainingChart('การวิ่ง ', runningData),
             buildTrainingChart(
-                'Rope Jumping Duration (Minutes)', ropeJumpingData),
-            buildTrainingChart('Punching Duration (Minutes)', punchingData),
+                'การกระโดดเชือก', ropeJumpingData),
+            buildTrainingChart('ารชกกระสอบทราย', punchingData),
             buildTrainingChart(
-                'Weight Training Duration (Minutes)', weightTrainingData),
+                'การยกน้ำหนัก', weightTrainingData),
           ],
         ),
       ),

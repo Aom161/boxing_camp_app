@@ -14,7 +14,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('Failed to load camps');
+      throw Exception('โหลดค่ายไม่สำเร็จ');
     }
   }
 }
@@ -134,7 +134,7 @@ class _ManageRequestsTrainerPageState extends State<ManageRequestsTrainerPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update request.')),
+        SnackBar(content: Text('ไม่สามารถอัปเดตคำขอได้.')),
       );
     }
   }
@@ -143,7 +143,8 @@ class _ManageRequestsTrainerPageState extends State<ManageRequestsTrainerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Requests'),
+        title: Text('คำขอสังกัดของครูมวย'),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
       ),
       drawer: BaseAppDrawer(
         username: username,

@@ -38,10 +38,10 @@ class _EditPageState extends State<EditPage> {
           longitude = camp['location']['longitude'];
         });
       } else {
-        throw Exception('Failed to load camp data');
+        throw Exception('โหลดข้อมูลแคมป์ไม่สำเร็จ');
       }
     } catch (error) {
-      print('Error fetching camp data: $error');
+      print('เกิดข้อผิดพลาดในการเรียกข้อมูลค่าย: $error');
     }
   }
 
@@ -68,10 +68,10 @@ class _EditPageState extends State<EditPage> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Camp updated successfully!')));
           Navigator.pop(context); // กลับไปยังหน้าก่อนหน้า
         } else {
-          throw Exception('Failed to edit camp');
+          throw Exception('แก้ไขค่ายมวยไม่สำเร็จ');
         }
       } catch (error) {
-        print('Error updating camp: $error');
+        print('เกิดข้อผิดพลาดในการอัปเดตค่ายมวย: $error');
       }
     }
   }
@@ -80,7 +80,7 @@ class _EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Camp'),
+        title: Text('แก้ไขค่ายมวย'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

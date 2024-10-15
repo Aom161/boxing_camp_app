@@ -24,7 +24,7 @@ class _ApprovedBoxersScreenState extends State<ApprovedBoxersScreen> {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('Failed to load approved boxers');
+      throw Exception('ไม่สามารถโหลดนักมวยที่ได้รับอนุมัติได้');
     }
   }
 

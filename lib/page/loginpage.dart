@@ -61,12 +61,12 @@ class _LoginScreenState extends State<LoginScreen> {
         _checkLogin(role);
       } else if (response.statusCode == 401) {
         setState(() {
-          _errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+          _errorMessage = 'การเข้าถึงถูกปฏิเสธเนื่องจากข้อมูลประจำตัวไม่ถูกต้อง';
         });
         _showSnackBar(_errorMessage!, Colors.red);
-      } else {
+      } else if (response.statusCode == 400) {
         setState(() {
-          _errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง';
+          _errorMessage = 'กรอกชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่';
         });
         _showSnackBar(_errorMessage!, Colors.red);
       }
@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (role == 'ผู้ดูแลระบบ') {
       Navigator.pushReplacementNamed(context, '/adminpage');
     } else if (role == 'ผู้จัดการค่ายมวย') {
-      Navigator.pushReplacementNamed(context, '/managerpage');
+      Navigator.pushReplacementNamed(context, '/onepage');
     } else if (role == 'ครูมวย') {
       Navigator.pushReplacementNamed(context, '/trainer');
     } else if (role == 'นักมวย') {
@@ -163,7 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                         TextFormField(
                           controller: _usernameController,
-                          decoration: const InputDecoration(labelText: 'ชื่อผู้ใช้'),
+                          decoration:
+                              const InputDecoration(labelText: 'ชื่อผู้ใช้'),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'กรุณาใส่ชื่อผู้ใช้';
@@ -174,7 +175,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _passwordController,
-                          decoration: const InputDecoration(labelText: 'รหัสผ่าน'),
+                          decoration:
+                              const InputDecoration(labelText: 'รหัสผ่าน'),
                           obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -215,7 +217,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   builder: (context) => RegisterScreen()),
                             );
                           },
-                          child: const Text('คุณไม่มีบัญชีใช่หรือไม่? สมัครสมาชิก'),
+                          child: const Text(
+                              'คุณไม่มีบัญชีใช่หรือไม่? สมัครสมาชิก'),
                         ),
                       ],
                     ),

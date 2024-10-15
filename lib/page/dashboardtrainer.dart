@@ -7,15 +7,15 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class DashboardPage extends StatefulWidget {
+class DashboardTrainerPage extends StatefulWidget {
   final String? username;
-  const DashboardPage({super.key, this.username});
+  const DashboardTrainerPage({super.key, this.username});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  State<DashboardTrainerPage> createState() => _DashboardTrainerPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardTrainerPageState extends State<DashboardTrainerPage> {
   late String? username;
   late String? _id;
   String accessToken = "";
@@ -71,7 +71,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
           for (var training in trainings) {
             // ตรวจสอบว่า boxerId ตรงกับ _id ของผู้ใช้หรือไม่
-            if (training['boxerId'] == _id) {
+            if (training['userId'] == _id) {
               // Process running data
               if (training['running'] != null) {
                 DateTime updatedAt = DateTime.parse(training['updated_at']);

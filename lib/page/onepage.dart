@@ -6,16 +6,14 @@ import 'package:boxing_camp_app/page/loginpage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
-  final String? username;
-
-  const HomePage({super.key, this.username});
+class Onepage extends StatefulWidget {
+  const Onepage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<Onepage> createState() => _OnepageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _OnepageState extends State<Onepage> {
   late String? username;
   String accessToken = "";
   String refreshToken = "";
@@ -26,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    username = widget.username;
     getInitialize();
   }
 
@@ -127,7 +124,6 @@ class _HomePageState extends State<HomePage> {
         username: username,
         isLoggedIn: _isCheckingStatus,
         role: role,
-        
         onHomeTap: (context) {
           Navigator.pushNamed(context, '/home');
         },
@@ -147,38 +143,17 @@ class _HomePageState extends State<HomePage> {
               'ยินดีต้อนรับสู่สมาร์ทมวยไทยเมืองลุง',
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.width *
-                    0.05, // 30% of screen width
+                    0.05, // 30% ของความกว้างหน้าจอ
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              width: MediaQuery.of(context).size.width *
-                  0.3, // 30% of screen width for the button
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                  );
-                },
-                child: Text(
-                  'Get Started',
-                  style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width *
-                        0.3 *
-                        0.10, // 30% of button width (which is already 30% of screen)
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             Image.asset(
               'assets/images/logomuay.png',
               height: MediaQuery.of(context).size.height *
-                  0.5, // 30% of screen height
+                  0.5, // 30% ของความสูงหน้าจอ
             )
           ],
         ),

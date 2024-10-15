@@ -75,9 +75,29 @@ class _EditProfileState extends State<EditProfile> {
         _addressController.text.isEmpty ||
         _telephoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All fields are required')),
+        const SnackBar(content: Text('กรุณากรอกให้ครบทุกช่อง')),
       );
       return; // Exit if validation fails
+    }
+
+    // Email format validation
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(_emailController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('รูปแบบอีเมลไม่ถูกต้อง')),
+      );
+      return; // Exit if email format is invalid
+    }
+
+    // Phone number format validation (Example: must be 10 digits)
+    final phoneRegex =
+        RegExp(r'^\d{10}$'); // Modify this regex based on your requirements
+    if (!phoneRegex.hasMatch(_telephoneController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('รูปแบบเบอร์โทรไม่ถูกต้อง')),
+      );
+      return; // Exit if phone number format is invalid
     }
 
     final updatedData = {
@@ -93,7 +113,11 @@ class _EditProfileState extends State<EditProfile> {
 
     final response = await http.put(
       Uri.parse('$apiUrl/updateProfile/$_id'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Bearer $accessToken' // Add authorization header if needed
+      },
       body: json.encode(updatedData),
     );
 
@@ -101,14 +125,14 @@ class _EditProfileState extends State<EditProfile> {
       Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profile updated successfully'),
+          content: Text('อัปเดตโปรไฟล์สำเร็จแล้ว'),
           duration: Duration(seconds: 2),
         ),
       );
     } else {
       print('Error: ${response.statusCode}, Message: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: ${response.body}')),
+        SnackBar(content: Text('ไม่สามารถอัปเดตโปรไฟล์ได้: ${response.body}')),
       );
     }
   }

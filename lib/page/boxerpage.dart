@@ -18,8 +18,7 @@ class _BoxerpageState extends State<Boxerpage> {
   String role = "";
   late SharedPreferences logindata;
   bool _isCheckingStatus = false;
-  
-  
+
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   String _bmiResult = "";
@@ -71,11 +70,6 @@ class _BoxerpageState extends State<Boxerpage> {
       await prefs.setString('height', height);
 
       _calculateBMI();
-      final snackbar = const SnackBar(
-        content: Text('ข้อมูลบันทึกเรียบร้อยแล้ว'),
-        duration: Duration(seconds: 2),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackbar);
     }
   }
 
@@ -122,22 +116,6 @@ class _BoxerpageState extends State<Boxerpage> {
         ),
         elevation: 10,
         backgroundColor: const Color.fromARGB(248, 226, 131, 53),
-        actions: [
-          if (username != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text(
-                  'ยินดีต้อนรับคุณ $username',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(width: 16),
-        ],
       ),
       drawer: BaseAppDrawer(
         username: username,
@@ -157,6 +135,21 @@ class _BoxerpageState extends State<Boxerpage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            if (username != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text(
+                    'ยินดีต้อนรับคุณ $username',
+                    
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 20),
             Container(
               width: 300,
               height: 250,
@@ -242,7 +235,7 @@ class _BoxerpageState extends State<Boxerpage> {
             const SizedBox(height: 20),
             Container(
               width: 300,
-              height: 150, // ขยายขนาดกล่องให้สูงขึ้นจาก 100 เป็น 150
+              height: 150,
               decoration: BoxDecoration(
                 color: const Color(0xFFFED673),
                 borderRadius: BorderRadius.circular(20),
@@ -266,7 +259,7 @@ class _BoxerpageState extends State<Boxerpage> {
                 child: Center(
                   child: Text(
                     _bmiResult,
-                    textAlign: TextAlign.center, // จัดข้อความให้อยู่ตรงกลาง
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:boxing_camp_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,7 +41,6 @@ class _ContactPageState extends State<ContactPage> {
     print(accessToken);
     print(refreshToken);
     print(role);
-
   }
 
   @override
@@ -133,6 +131,19 @@ class _ContactPageState extends State<ContactPage> {
                     ],
                   ),
                   SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone, size: 20),
+                      SizedBox(width: 10),
+                      Text(
+                        '088-3788655', // ใส่เบอร์โทรศัพท์ Watcharapong
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -174,6 +185,19 @@ class _ContactPageState extends State<ContactPage> {
                     ],
                   ),
                   SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone, size: 20),
+                      SizedBox(width: 10),
+                      Text(
+                        '062-0915049', // ใส่เบอร์โทรศัพท์ Sunita
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

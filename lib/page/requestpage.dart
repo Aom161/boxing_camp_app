@@ -17,20 +17,24 @@ class RequestToJoinCampPage extends StatefulWidget {
 class _RequestToJoinCampPageState extends State<RequestToJoinCampPage> {
   String? selectedCampId;
   List<dynamic> camps = [];
+  List<dynamic> requests = [];
   String accessToken = "";
-  String refreshToken = "";
   String role = "";
   late SharedPreferences logindata;
   bool _isCheckingStatus = false;
   String? username;
   String? _id;
+  String? currentRequestStatus;
+  bool isLoadingCamps = true;
+  bool isLoadingRequests = true;
 
   @override
   void initState() {
     super.initState();
-    fetchCamps(); // Fetch camps when the page loads
     username = widget.username;
     getInitialize();
+    fetchCamps();
+    fetchRequest();
   }
 
   void getInitialize() async {
@@ -39,36 +43,110 @@ class _RequestToJoinCampPageState extends State<RequestToJoinCampPage> {
       _isCheckingStatus = prefs.getBool("isLoggedIn") ?? false;
       username = prefs.getString("username") ?? "";
       accessToken = prefs.getString("accessToken") ?? "";
-      refreshToken = prefs.getString("refreshToken") ?? "";
       role = prefs.getString("role") ?? "";
       _id = prefs.getString('_id') ?? "";
     });
-
-    print(_isCheckingStatus);
-    print(username);
-    print(accessToken);
-    print(refreshToken);
-    print(role);
   }
 
   Future<void> fetchCamps() async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/getcamp'),
-    );
-
-    print(response.body);
-
-    if (response.statusCode == 200) {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/getcamp'));
+      if (response.statusCode == 200) {
+        setState(() {
+          camps = jsonDecode(response.body);
+          isLoadingCamps = false;
+        });
+      } else {
+        throw Exception('ไม่สามารถโหลดค่ายได้');
+      }
+    } catch (e) {
       setState(() {
-        camps = jsonDecode(response.body); // Set camps for dropdown
+        isLoadingCamps = false;
       });
-    } else {
-      throw Exception('Failed to load camps');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 
-  Future<void> submitRequest(String _id, String campId) async {
-    // Ensure the access token is not empty or null
+  Future<void> fetchRequest() async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/getRequestToAll'));
+      if (response.statusCode == 200) {
+        setState(() {
+          List<dynamic> allRequests = jsonDecode(response.body);
+          String? currentUserId = _id;
+
+          // ดึงเฉพาะคำขอของผู้ใช้ปัจจุบัน
+          requests = allRequests
+              .where((request) => request['boxerId']['_id'] == currentUserId)
+              .toList();
+
+          // อัปเดต currentRequestStatus ตามสถานะของคำขอ
+          if (requests.isNotEmpty) {
+            // ตรวจสอบว่ามีคำขอที่ได้รับการอนุมัติหรือไม่
+            var approvedRequest = requests.firstWhere(
+                (request) => request['status'] == 'approved',
+                orElse: () => null);
+
+            if (approvedRequest != null) {
+              currentRequestStatus = 'คำขอของคุณได้รับการอนุมัติแล้ว';
+            } else {
+              currentRequestStatus = 'คำขอของคุณอยู่ในขั้นตอนการตรวจสอบ';
+            }
+          } else {
+            currentRequestStatus = null;
+          }
+
+          isLoadingRequests = false;
+        });
+
+        print("---------------------------");
+        print(requests);
+        print("---------------------------");
+      } else {
+        throw Exception('ไม่สามารถโหลดคำขอได้');
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingRequests = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+
+  Future<String?> getRequestStatus(String boxerId, String campId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/getRequestStatus?boxerId=$boxerId&campId=$campId'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['status'];
+    } else if (response.statusCode == 404) {
+      return null; // No request found
+    } else {
+      throw Exception('ไม่สามารถตรวจสอบสถานะคำขอได้');
+    }
+  }
+
+  Future<void> submitRequest(String boxerId, String campId) async {
+    // Fetch current requests to check if a request exists before submission
+    await fetchRequest(); // Fetch requests to get the latest status
+
+    // Check if the currentRequestStatus is set, indicating an existing request
+    if (currentRequestStatus != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(currentRequestStatus!)),
+      );
+      return; // Prevent further requests
+    }
+
     if (accessToken.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Access token is missing!')),
@@ -76,38 +154,46 @@ class _RequestToJoinCampPageState extends State<RequestToJoinCampPage> {
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('$apiUrl/request'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken', // Include the access token
-      },
-      body: jsonEncode({'boxerId': _id, 'campId': campId}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$apiUrl/request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'boxerId': boxerId, 'campId': campId}),
+      );
 
-    if (response.statusCode == 201) {
+      if (response.statusCode == 201) {
+        // Refresh requests to update the UI
+        await fetchRequest(); // Ensure the latest requests are fetched
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ส่งคำขอสำเร็จ!')),
+        );
+      } else {
+        String errorMessage = 'ไม่สามารถส่งคำขอได้';
+        if (response.statusCode == 401) {
+          errorMessage = 'Unauthorized: Invalid access token.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Request submitted successfully!')),
-      );
-    } else if (response.statusCode == 401) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unauthorized: Invalid access token.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit request.')),
+        SnackBar(content: Text(e.toString())),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Set boxerId from stored _id if it's available
-    String boxerId = _id ?? ''; // Ensure it's not null
+    String boxerId = _id ?? '';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Request to Join Camp'),
+        title: Text('คำขอเข้าร่วมค่าย'),
+        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
       ),
       drawer: BaseAppDrawer(
         username: username,
@@ -129,39 +215,55 @@ class _RequestToJoinCampPageState extends State<RequestToJoinCampPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select a Camp to Join:',
+              'เลือกค่ายที่ต้องการเข้าร่วม:',
               style: TextStyle(fontSize: 18),
             ),
             SizedBox(height: 16),
-            camps.isEmpty
+            isLoadingCamps
                 ? Center(child: CircularProgressIndicator())
-                : DropdownButton<String>(
-                    value: selectedCampId,
-                    isExpanded: true,
-                    hint: Text(
-                        'Choose a Camp'), // Display this when nothing is selected
-                    items: camps.map<DropdownMenuItem<String>>((camp) {
-                      // Ensure '_id' and 'campName' are not null
-                      return DropdownMenuItem<String>(
-                        value: camp['_id'] ?? '',
-                        child: Text(camp['name'] ?? 'Unknown Camp'),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCampId = value; // Update the selected camp ID
-                      });
-                    },
-                  ),
+                : camps.isEmpty
+                    ? Center(child: Text('ไม่มีค่ายให้เลือก'))
+                    : DropdownButton<String>(
+                        value: selectedCampId,
+                        isExpanded: true,
+                        hint: Text('เลือกค่าย'),
+                        items: camps.map<DropdownMenuItem<String>>((camp) {
+                          return DropdownMenuItem<String>(
+                            value: camp['_id'] ?? '',
+                            child: Text(camp['name'] ?? 'Unknown Camp'),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCampId = value;
+                          });
+                        },
+                      ),
             SizedBox(height: 24),
+            if (currentRequestStatus != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  currentRequestStatus!,
+                  style: TextStyle(
+                    color:
+                        currentRequestStatus == 'คำขอของคุณได้รับการอนุมัติแล้ว'
+                            ? Colors.green // สีเขียวเมื่อได้รับการอนุมัติ
+                            : Colors.red, // สีแดงเมื่ออยู่ระหว่างการตรวจสอบ
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ElevatedButton(
-              onPressed: selectedCampId == null || selectedCampId!.isEmpty
-                  ? null // Disable the button if no camp is selected
+              onPressed: selectedCampId == null ||
+                      selectedCampId!.isEmpty ||
+                      currentRequestStatus !=
+                          null // Disable button if an existing request exists
+                  ? null
                   : () {
-                      submitRequest(
-                          boxerId, selectedCampId!); // Use the selectedCampId
+                      submitRequest(boxerId, selectedCampId!);
                     },
-              child: Text('Submit Request'),
+              child: Text('ส่งคำขอ'),
             ),
           ],
         ),

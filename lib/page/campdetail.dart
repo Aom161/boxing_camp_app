@@ -154,6 +154,11 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                         const Divider(),
+                        Text(
+                          'ผู้จัดการ: ${manager?['fullname'] ?? 'ไม่มีผู้จัดการ'}',
+                          style: const TextStyle(fontSize: 18, color: Colors.black87),
+                        ),
                         const Divider(),
                         const Text(
                           'ตำแหน่งที่ตั้ง:',
@@ -175,7 +180,7 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                         const SizedBox(height: 20),
                         const Divider(),
                         Text(
-                          'อัปเดตเมื่อ: ${DateFormat.yMMMMd("th_TH").format(DateTime.parse(widget.camp['updated_at']))}',
+                          'อัปเดตเมื่อ: ${DateFormat('d MMMM yyyy', 'th_TH').format(DateTime.parse(widget.camp['updated_at']))}',
                           style:
                               TextStyle(fontSize: 18, color: Colors.grey[700]),
                         ),
@@ -198,10 +203,10 @@ class _CampDetailScreenState extends State<CampDetailScreen> {
                   ),
                   const SizedBox(height: 20),
                   const Divider(),
-                  Text(
-                    'ผู้จัดการ: ${manager?['fullname'] ?? 'ไม่มีผู้จัดการ'}',
-                    style: const TextStyle(fontSize: 18, color: Colors.black87),
-                  ),
+                  // Text(
+                  //   'ผู้จัดการ: ${manager?['fullname'] ?? 'ไม่มีผู้จัดการ'}',
+                  //   style: const TextStyle(fontSize: 18, color: Colors.black87),
+                  // ),
                 ],
               ),
             ),

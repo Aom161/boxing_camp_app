@@ -1,26 +1,31 @@
 import 'dart:convert';
-import 'package:boxing_camp_app/main.dart';
-import 'package:boxing_camp_app/variable.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:boxing_camp_app/variable.dart';
 
-class DashboardPage extends StatefulWidget {
-  final String? username;
-  const DashboardPage({super.key, this.username});
+class BoxerTrainingPage extends StatefulWidget {
+  final String boxerId;
+  final String boxerName;
+  final String accessToken;
+
+  const BoxerTrainingPage({
+    Key? key,
+    required this.boxerId,
+    required this.boxerName,
+    required this.accessToken,
+  }) : super(key: key);
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  State<BoxerTrainingPage> createState() => _BoxerTrainingPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _BoxerTrainingPageState extends State<BoxerTrainingPage> {
   late String? username;
   late String? _id;
-  String accessToken = "";
-  String refreshToken = "";
-  String role = "";
+  late String accessToken;
   late SharedPreferences logindata;
   bool _isCheckingStatus = false;
   List<TrainingData> runningData = [];
@@ -31,38 +36,31 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    username = widget.username;
     getInitialize();
     _fetchTrainingData();
   }
 
   void getInitialize() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     setState(() {
       _isCheckingStatus = prefs.getBool("isLoggedIn") ?? false;
       username = prefs.getString("username") ?? "ไม่ได้ลงชื่อเข้าใช้";
       accessToken = prefs.getString("accessToken") ?? "";
-      refreshToken = prefs.getString("refreshToken") ?? "";
-      role = prefs.getString("role") ?? "No Role";
       _id = prefs.getString('_id');
     });
-
-    print(_isCheckingStatus);
-    print(username);
-    print(accessToken);
-    print(refreshToken);
-    print(role);
   }
 
   Future<void> _fetchTrainingData() async {
     try {
-      final response = await http.get(Uri.parse('$apiUrl/gettrainingall'));
+      final response = await http.get(
+        Uri.parse('$apiUrl/gettrainingbyboxer/${widget.boxerId}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.accessToken}',
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> trainings = jsonDecode(response.body);
-        print('Training data: $trainings'); // ตรวจสอบข้อมูลที่ได้รับ
-
         setState(() {
           runningData.clear();
           ropeJumpingData.clear();
@@ -70,44 +68,35 @@ class _DashboardPageState extends State<DashboardPage> {
           weightTrainingData.clear();
 
           for (var training in trainings) {
-            // ตรวจสอบว่า boxerId ตรงกับ _id ของผู้ใช้หรือไม่
-            if (training['boxerId'] == _id) {
-              // Process running data
-              if (training['running'] != null) {
-                DateTime updatedAt = DateTime.parse(training['updated_at']);
-                double distance = training['running']['distance'].toDouble();
-                runningData.add(TrainingData(updatedAt, distance));
-              }
+            DateTime updatedAt = DateTime.parse(training['updated_at']);
 
-              // Process rope jumping data
-              if (training['ropeJumping'] != null &&
-                  training['ropeJumping']['count'] != null) {
-                DateTime updatedAt = DateTime.parse(training['updated_at']);
-                int count = training['ropeJumping']['count'];
-                ropeJumpingData.add(TrainingData(updatedAt, count.toDouble()));
-              }
+            if (training['running'] != null) {
+              double distance = training['running']['distance']?.toDouble() ??
+                  0.0; // Default to 0.0 if null
+              runningData.add(TrainingData(updatedAt, distance));
+            }
 
-              // Process punching data
-              if (training['punching'] != null &&
-                  training['punching']['count'] != null) {
-                DateTime updatedAt = DateTime.parse(training['updated_at']);
-                int count = training['punching']['count'];
-                punchingData.add(TrainingData(updatedAt, count.toDouble()));
-              }
+            if (training['ropeJumping'] != null) {
+              int count =
+                  training['ropeJumping']['count'] ?? 0; // Default to 0 if null
+              ropeJumpingData.add(TrainingData(updatedAt, count.toDouble()));
+            }
 
-              // Process weight training data
-              if (training['weightTraining'] != null &&
-                  training['weightTraining']['count'] != null) {
-                DateTime updatedAt = DateTime.parse(training['updated_at']);
-                int count = training['weightTraining']['count'];
-                weightTrainingData
-                    .add(TrainingData(updatedAt, count.toDouble()));
-              }
+            if (training['punching'] != null) {
+              int count =
+                  training['punching']['count'] ?? 0; // Default to 0 if null
+              punchingData.add(TrainingData(updatedAt, count.toDouble()));
+            }
+
+            if (training['weightTraining'] != null) {
+              int count = training['weightTraining']['count'] ??
+                  0; // Default to 0 if null
+              weightTrainingData.add(TrainingData(updatedAt, count.toDouble()));
             }
           }
         });
       } else {
-        throw Exception('Failed to load training data');
+        throw Exception('ไม่สามารถโหลดข้อมูลการฝึกได้');
       }
     } catch (e) {
       print('Error: $e');
@@ -138,7 +127,6 @@ class _DashboardPageState extends State<DashboardPage> {
             TrainingData(entry.key, entry.value)) // Create TrainingData objects
         .toList();
 
-    // Create Padding and SfCartesianChart
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SfCartesianChart(
@@ -171,57 +159,18 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "แดชบอร์ด",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 0, 0),
-          ),
-        ),
-        elevation: 10,
-        backgroundColor: const Color.fromARGB(248, 226, 131, 53),
-        actions: [
-          if (username != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Center(
-                child: Text(
-                  '$username',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      drawer: BaseAppDrawer(
-        username: username,
-        isLoggedIn: _isCheckingStatus,
-        role: role,
-        onHomeTap: (context) {
-          Navigator.pushNamed(context, '/home');
-        },
-        onCampTap: (context) {
-          Navigator.pushNamed(context, '/dashboard');
-        },
-        onContactTap: (context) {
-          Navigator.pushNamed(context, '/contact');
-        },
+        title: Text("การฝึกของ ${widget.boxerName}"),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            buildTrainingChart('การวิ่ง ', runningData,
+            buildTrainingChart('การวิ่ง (นาที)', runningData,
                 yAxisTitle: 'ระยะทาง (กิโลเมตร)', interval: 5),
-            buildTrainingChart('การกระโดดเชือก ', ropeJumpingData,
+            buildTrainingChart('การกระโดดเชือก (นาที)', ropeJumpingData,
                 yAxisTitle: 'จำนวนครั้ง', interval: 50),
-            buildTrainingChart('การชกกระสอบทราย ', punchingData,
+            buildTrainingChart('การชกกระสอบทราย (นาที)', punchingData,
                 yAxisTitle: 'จำนวนครั้ง', interval: 50),
-            buildTrainingChart('การยกน้ำหนัก ', weightTrainingData,
+            buildTrainingChart('การยกน้ำหนัก (นาที)', weightTrainingData,
                 yAxisTitle: 'จำนวนครั้ง', interval: 10),
           ],
         ),

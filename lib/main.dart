@@ -2,6 +2,7 @@ import 'package:boxing_camp_app/firebase_options.dart';
 import 'package:boxing_camp_app/page/addboxerpage.dart';
 import 'package:boxing_camp_app/page/addboxingcamp.dart';
 import 'package:boxing_camp_app/page/adminpage.dart';
+import 'package:boxing_camp_app/page/boxerall.dart';
 // import 'package:boxing_camp_app/page/appprovedtrainer.dart';
 import 'package:boxing_camp_app/page/boxerpage.dart';
 import 'package:boxing_camp_app/page/boxeruser.dart';
@@ -9,6 +10,8 @@ import 'package:boxing_camp_app/page/boxingcampuser.dart';
 import 'package:boxing_camp_app/page/campdetail.dart';
 import 'package:boxing_camp_app/page/contact.dart';
 import 'package:boxing_camp_app/page/dashboard.dart';
+import 'package:boxing_camp_app/page/dashboardmanager.dart';
+import 'package:boxing_camp_app/page/dashboardtrainer.dart';
 import 'package:boxing_camp_app/page/dashboarduser.dart';
 import 'package:boxing_camp_app/page/editcamp.dart';
 import 'package:boxing_camp_app/page/editprofile.dart';
@@ -35,6 +38,7 @@ import 'package:boxing_camp_app/page/trainingpage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:boxing_camp_app/page/onepage.dart';
 
 import 'page/mycamp.dart';
 
@@ -92,6 +96,7 @@ class MyApp extends StatelessWidget {
               '/traineruser': (context) => const Traineruser(),
               '/boxeruser': (context) => const Boxeruser(),
               '/manegeruser': (context) => const Manegeruser(),
+              '/onepage': (context) => const Onepage(),
               '/mycamp': (context) => MyCampsScreen(
                     manager: '',
                   ),
@@ -107,7 +112,11 @@ class MyApp extends StatelessWidget {
               '/requesttrainer': (context) =>
                   RequestToJoinCampPageForTrainers(),
               '/managerhistory': (context) => ManagerActivityHistoryPage(),
-              '/managereditcamp':(context) => ManagerEditCampPage(),
+              '/managereditcamp': (context) => ManagerEditCampPage(),
+              '/dashboardtrainer': (context) => DashboardTrainerPage(),
+              '/dashboardmanager': (context) => DashboardManagerPage(),
+              '/boxerall':(context)=> BoxerAll(),
+
             },
             home: const LoginScreen(),
           );
@@ -179,29 +188,43 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               height: 100,
             ),
           ),
-          ListTile(
-            title: const Text('หน้าแรก'),
-            onTap: () => widget.onHomeTap(context),
-          ),
-          ListTile(
-            title: const Text('ติดต่อเรา'),
-            onTap: () => widget.onContactTap(context),
-          ),
-          ListTile(
-            title: const Text('แดชบอร์ด'),
-            onTap: () => widget.onCampTap(context),
-          ),
+          
           if (widget.role! == '') ...[
             ListTile(
-              title: const Text('ค่ายมวย'),
+              title: const Text('หน้าแรก'),
+              onTap: () {
+                Navigator.pushNamed(context, '/home');
+              },
+            ),
+            ListTile(
+              title: const Text('แดชบอร์ด'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboarduser');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/campforuser');
               },
             ),
+            ListTile(
+            title: const Text('ติดต่อเรา'),
+            onTap: () => widget.onContactTap(context),
+            ),
           ],
+
+
+
           if (widget.role! == "ผู้ดูแลระบบ") ...[
             ListTile(
-              title: const Text('นักมวย'),
+              title: const Text('แดชบอร์ด'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboard');
+              },
+            ),
+            ListTile(
+              title: const Text('นักมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/boxeruser');
               },
@@ -213,13 +236,13 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
             ListTile(
-              title: const Text('ครูมวย'),
+              title: const Text('ครูมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/traineruser');
               },
             ),
             ListTile(
-              title: const Text('ค่ายมวย'),
+              title: const Text('ค่ายมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/getcamp');
               },
@@ -231,7 +254,16 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
           ],
+
+
+
           if (widget.role! == "ผู้จัดการค่ายมวย") ...[
+            ListTile(
+              title: const Text('หน้าเเรก'),
+              onTap: () {
+                Navigator.pushNamed(context, '/onepage');
+              },
+            ),
             ListTile(
               title: const Text('โปรไฟล์'),
               onTap: () {
@@ -263,15 +295,21 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
             ListTile(
-              title: const Text('นักมวย'),
+              title: const Text('นักมวยทั้งหมด'),
               onTap: () {
-                Navigator.pushNamed(context, '/boxeruser');
+                Navigator.pushNamed(context, '/boxerall');
               },
             ),
             ListTile(
-              title: const Text('ค่ายมวย'),
+              title: const Text('ค่ายมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/getcamp');
+              },
+            ),
+            ListTile(
+              title: const Text('แดชบอร์ด'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboardmanager');
               },
             ),
             ListTile(
@@ -281,6 +319,9 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
           ],
+
+
+
           if (widget.role! == "นักมวย") ...[
             ListTile(
               title: const Text('หน้าเเรก'),
@@ -307,13 +348,28 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
             ListTile(
-              title: const Text('ค่ายมวย'),
+              title: const Text('แดชบอร์ด'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboard');
+              },
+            ),
+            ListTile(
+              title: const Text('ค่ายมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/campforuser');
               },
             ),
           ],
+
+
           if (widget.role! == "ครูมวย") ...[
+            ListTile(
+              title: const Text('หน้าเเรก'),
+              onTap: () {
+                Navigator.pushNamed(context, '/onepage');
+              },
+            ),
+            
             ListTile(
               title: const Text('โปรไฟล์'),
               onTap: () {
@@ -333,24 +389,36 @@ class _BaseAppDrawerState extends State<BaseAppDrawer> {
               },
             ),
             ListTile(
+              title: const Text('แดชบอร์ด'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboardtrainer');
+              },
+            ),
+            ListTile(
               title: const Text('ประวัติการฝึกซ้อม'),
               onTap: () {
                 Navigator.pushNamed(context, '/traininghistory');
               },
             ),
             ListTile(
-              title: const Text('ค่ายมวย'),
+              title: const Text('ค่ายมวยทั้งหมด'),
               onTap: () {
                 Navigator.pushNamed(context, '/campforuser');
               },
             ),
             ListTile(
-              title: const Text('นักมวย'),
+              title: const Text('นักมวยทั้งหมด'),
               onTap: () {
-                Navigator.pushNamed(context, '/boxeruser');
+                Navigator.pushNamed(context, '/boxerall');
               },
             ),
+            
+            ListTile(
+            title: const Text('ติดต่อเรา'),
+            onTap: () => widget.onContactTap(context),
+            ),
           ],
+
           ListTile(
             title: widget.isLoggedIn!
                 ? OutlinedButton(

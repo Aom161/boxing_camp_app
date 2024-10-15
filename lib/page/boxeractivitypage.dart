@@ -62,7 +62,7 @@ class _BoxerActivityHistoryPage extends State<BoxerActivityHistoryPage> {
       });
       await _fetchUserNames(filteredActivities);
     } else {
-      throw Exception('Failed to load activities');
+      throw Exception('โหลดกิจกรรมไม่สำเร็จ');
     }
   }
 
@@ -139,35 +139,64 @@ class _BoxerActivityHistoryPage extends State<BoxerActivityHistoryPage> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
+                        
                         if (running.isNotEmpty)
-                          Text(
-                            'วิ่ง: ${running['duration']} นาที, ระยะทาง: ${running['distance']} กม.',
-                            style: const TextStyle(fontSize: 16),
+                          Row(
+                            children: [
+                              const Icon(Icons.directions_run),  // ไอคอนวิ่ง
+                              const SizedBox(width: 8),
+                              Text(
+                                'วิ่ง: ${running['duration']} นาที, ระยะทาง: ${running['distance']} กม.',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
+                        
                         if (ropeJumping.isNotEmpty)
-                          Text(
-                            'กระโดดเชือก: ${ropeJumping['duration']} นาที, จำนวนครั้ง: ${ropeJumping['count']}',
-                            style: const TextStyle(fontSize: 16),
+                          Row(
+                            children: [
+                              const Icon(Icons.sports_kabaddi),  // ไอคอนกระโดดเชือก
+                              const SizedBox(width: 8),
+                              Text(
+                                'กระโดดเชือก: ${ropeJumping['duration']} นาที, จำนวนครั้ง: ${ropeJumping['count']}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
+                        
                         if (punching.isNotEmpty)
-                          Text(
-                            'การชกกระสอบทราย: ${punching['duration']} นาที, จำนวนครั้ง: ${punching['count']}',
-                            style: const TextStyle(fontSize: 16),
+                          Row(
+                            children: [
+                              const Icon(Icons.sports_mma),  // ไอคอนการชกกระสอบทราย
+                              const SizedBox(width: 8),
+                              Text(
+                                'การชกกระสอบทราย: ${punching['duration']} นาที, จำนวนครั้ง: ${punching['count']}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
+                        
                         if (weightTraining.isNotEmpty)
-                          Text(
-                            'ยกน้ำหนัก: ${weightTraining['duration']} นาที, จำนวนครั้ง: ${weightTraining['count']}',
-                            style: const TextStyle(fontSize: 16),
+                          Row(
+                            children: [
+                              const Icon(Icons.fitness_center),  // ไอคอนยกน้ำหนัก
+                              const SizedBox(width: 8),
+                              Text(
+                                'ยกน้ำหนัก: ${weightTraining['duration']} นาที, จำนวนครั้ง: ${weightTraining['count']}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
+                        
                         Text(
                           'วันที่บันทึกข้อมูล: $formattedDate',
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       ],
                     ),
                   ),
                 );
+
               },
             ),
     );
